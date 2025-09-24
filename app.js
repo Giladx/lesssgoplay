@@ -153,6 +153,18 @@ document.addEventListener("DOMContentLoaded", () => {
     previewEl.innerHTML = "";
     if (layer.element) {
       previewEl.appendChild(layer.element);
+      if (layer.element.tagName === "VIDEO") {
+        const playPromise = layer.element.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(error => {
+            if (error.name === 'AbortError') {
+              console.log('Video play() request was aborted.');
+            } else {
+              console.error('Video play() failed:', error);
+            }
+          });
+        }
+      }
     }
     renderOutput();
   }
@@ -203,18 +215,14 @@ document.addEventListener("DOMContentLoaded", () => {
               newRenderer.draw(performance.now() / 1000);
           }
         } else {
-          outputEl = layer.element.cloneNode(true);
-          if (outputEl.tagName === "VIDEO") {
-            const playPromise = outputEl.play();
-            if (playPromise !== undefined) {
-              playPromise.catch(error => {
-                if (error.name === 'AbortError') {
-                  console.log('Video play() request was aborted in output window.');
-                } else {
-                  console.error('Video play() in output window failed:', error);
-                }
-              });
-            }
+          if (layer.element.tagName === "VIDEO") {
+            outputEl = document.createElement('video');
+            outputEl.src = layer.element.src;
+            outputEl.loop = true;
+            outputEl.muted = true;
+            outputEl.autoplay = true;
+          } else {
+            outputEl = layer.element.cloneNode(true);
           }
         }
 
