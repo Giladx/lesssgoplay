@@ -48,7 +48,16 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       sourceNode = audioContext.createMediaElementSource(audio);
       connectAudio(sourceNode);
-      audio.play();
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise.catch((error) => {
+          if (error.name === "AbortError") {
+            console.log("Audio play() request was aborted.");
+          } else {
+            console.error("Audio play() failed:", error);
+          }
+        });
+      }
     }
   });
 
@@ -196,7 +205,16 @@ document.addEventListener("DOMContentLoaded", () => {
         } else {
           outputEl = layer.element.cloneNode(true);
           if (outputEl.tagName === "VIDEO") {
-            outputEl.play();
+            const playPromise = outputEl.play();
+            if (playPromise !== undefined) {
+              playPromise.catch(error => {
+                if (error.name === 'AbortError') {
+                  console.log('Video play() request was aborted in output window.');
+                } else {
+                  console.error('Video play() in output window failed:', error);
+                }
+              });
+            }
           }
         }
 
@@ -301,7 +319,6 @@ document.addEventListener("DOMContentLoaded", () => {
   function handleVideo(layer, fileURL) {
     layer.element = document.createElement("video");
     layer.element.src = fileURL;
-    layer.element.autoplay = true;
     layer.element.loop = true;
     layer.element.muted = true;
     layer.element.style.width = "100%";
